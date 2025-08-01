@@ -595,7 +595,7 @@
       if (!window.gsap) return;
       
       waveAnimation = window.gsap.timeline({ repeat: -1 });
-      const waves = document.querySelectorAll(".voice-waves .wave");
+      const waves = container.querySelectorAll(".voice-waves .wave");
       waves.forEach((wave, index) => {
         waveAnimation.fromTo(wave,
           { width: "70%", height: "70%", opacity: 0.7, transform: "translate(-50%, -50%) scale(0.8)" },

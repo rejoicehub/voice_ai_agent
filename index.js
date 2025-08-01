@@ -447,20 +447,57 @@
 
       async startCall() {
         try {
+          // Get media stream with validation
           this.mediaStream = await navigator.mediaDevices.getUserMedia({
-            audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, sampleRate: 48000, channelCount: 1, },
+            audio: { 
+              echoCancellation: true, 
+              noiseSuppression: true, 
+              autoGainControl: true, 
+              sampleRate: 48000, 
+              channelCount: 1 
+            },
           });
-          this.audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 48000, latencyHint: "interactive" });
-          if (this.audioContext.state === "suspended") { await this.audioContext.resume(); }
           
-          this.ws = new WebSocket(`wss://python.callai.rejoicehub.com/ws/web-call?agent_id=agent_01jz81x78pezzsbexr67b1qxd4`);
+          if (!this.mediaStream) {
+            throw new Error('Failed to get media stream');
+          }
+          
+          // Create audio context with validation
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (!AudioContextClass) {
+            throw new Error('Web Audio API is not supported');
+          }
+          
+          this.audioContext = new AudioContextClass({ 
+            sampleRate: 48000, 
+            latencyHint: "interactive" 
+          });
+          
+          if (!this.audioContext) {
+            throw new Error('Failed to create audio context');
+          }
+          
+          if (this.audioContext.state === "suspended") { 
+            await this.audioContext.resume(); 
+          }
+          
+          // Create WebSocket with validation
+          const wsUrl = `wss://python.callai.rejoicehub.com/ws/web-call?agent_id=agent_01jz81x78pezzsbexr67b1qxd4`;
+          this.ws = new WebSocket(wsUrl);
+          
+          if (!this.ws) {
+            throw new Error('Failed to create WebSocket connection');
+          }
+          
           this.ws.onopen = () => this.handleWebSocketOpen();
           this.ws.onmessage = (event) => this.handleWebSocketMessage(event);
           this.ws.onerror = (error) => this.handleWebSocketError(error);
           this.ws.onclose = () => this.handleWebSocketClose();
+          
         } catch (error) {
           console.error("Error starting call:", error);
           showError("Failed to start call: " + error.message);
+          this.cleanup(); // Clean up any partial state
           throw error;
         }
       }
@@ -496,31 +533,70 @@
       }
 
       startAudioProcessing() {
-        this.source = this.audioContext.createMediaStreamSource(this.mediaStream);
-        const bufferSize = 2048;
-        this.processor = this.audioContext.createScriptProcessor(bufferSize, 1, 1);
-        this.source.connect(this.processor);
-        this.processor.connect(this.audioContext.destination);
+        try {
+          if (!this.mediaStream || !this.audioContext) {
+            throw new Error('Media stream or audio context not available');
+          }
+          
+          this.source = this.audioContext.createMediaStreamSource(this.mediaStream);
+          if (!this.source) {
+            throw new Error('Failed to create media stream source');
+          }
+          
+          const bufferSize = 2048;
+          
+          // Check if createScriptProcessor is available
+          if (this.audioContext.createScriptProcessor) {
+            this.processor = this.audioContext.createScriptProcessor(bufferSize, 1, 1);
+          } else {
+            throw new Error('Script processor not supported');
+          }
+          
+          if (!this.processor) {
+            throw new Error('Failed to create script processor');
+          }
+          
+          this.source.connect(this.processor);
+          this.processor.connect(this.audioContext.destination);
 
-        this.processor.onaudioprocess = (e) => {
-          if (!this.isConnected) return;
-          const inputData = e.inputBuffer.getChannelData(0);
-          const pcm16 = new Int16Array(inputData.length);
-          for (let i = 0; i < inputData.length; i++) {
-            const s = Math.max(-1, Math.min(1, inputData[i]));
-            pcm16[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
-          }
-          const base64 = btoa(String.fromCharCode(...new Uint8Array(pcm16.buffer)));
-          if (this.ws.readyState === WebSocket.OPEN) {
-            this.ws.send(JSON.stringify({ type: "audio", audio: base64 }));
-          }
-        };
+          this.processor.onaudioprocess = (e) => {
+            if (!this.isConnected || !e.inputBuffer) return;
+            
+            try {
+              const inputData = e.inputBuffer.getChannelData(0);
+              if (!inputData || inputData.length === 0) return;
+              
+              const pcm16 = new Int16Array(inputData.length);
+              for (let i = 0; i < inputData.length; i++) {
+                const s = Math.max(-1, Math.min(1, inputData[i]));
+                pcm16[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
+              }
+              
+              const base64 = btoa(String.fromCharCode(...new Uint8Array(pcm16.buffer)));
+              if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+                this.ws.send(JSON.stringify({ type: "audio", audio: base64 }));
+              }
+            } catch (error) {
+              console.error('Audio processing error:', error);
+            }
+          };
+        } catch (error) {
+          console.error('Error starting audio processing:', error);
+          showError('Failed to start audio processing: ' + error.message);
+        }
       }
 
       clearAudioQueue() {
         this.audioQueue = [];
         if (this.currentSource) {
-          try { this.currentSource.stop(); this.currentSource.disconnect(); } catch (e) {}
+          try { 
+            if (this.currentSource.buffer) {
+              this.currentSource.stop(); 
+            }
+            this.currentSource.disconnect(); 
+          } catch (e) {
+            // Ignore errors during cleanup
+          }
           this.currentSource = null;
         }
         this.isPlaying = false;
@@ -539,23 +615,98 @@
         }
         this.isPlaying = true;
         const audioBase64 = this.audioQueue.shift();
+        
         try {
+          // Validate input
+          if (!audioBase64 || typeof audioBase64 !== 'string') {
+            throw new Error('Invalid audio data received');
+          }
+          
+          // Validate audio context
+          if (!this.audioContext || this.audioContext.state === 'closed') {
+            throw new Error('Audio context is not available');
+          }
+          
+          // Resume audio context if suspended
+          if (this.audioContext.state === 'suspended') {
+            await this.audioContext.resume();
+          }
+          
           const binaryString = atob(audioBase64);
+          if (binaryString.length === 0) {
+            throw new Error('Empty audio data');
+          }
+          
           const bytes = new Uint8Array(binaryString.length);
-          for (let i = 0; i < binaryString.length; i++) { bytes[i] = binaryString.charCodeAt(i); }
+          for (let i = 0; i < binaryString.length; i++) { 
+            bytes[i] = binaryString.charCodeAt(i); 
+          }
+          
+          // Validate byte array
+          if (bytes.length === 0 || bytes.length % 2 !== 0) {
+            throw new Error('Invalid audio buffer size');
+          }
+          
           const int16Array = new Int16Array(bytes.buffer);
           const float32Array = new Float32Array(int16Array.length);
-          for (let i = 0; i < int16Array.length; i++) { float32Array[i] = int16Array[i] / 32768.0; }
+          
+          // Convert to float32 with validation
+          for (let i = 0; i < int16Array.length; i++) { 
+            const sample = int16Array[i] / 32768.0;
+            float32Array[i] = Math.max(-1, Math.min(1, sample)); // Clamp values
+          }
+          
+          // Validate array length
+          if (float32Array.length === 0) {
+            throw new Error('No audio samples to play');
+          }
+          
+          // Create audio buffer with validation
           const audioBuffer = this.audioContext.createBuffer(1, float32Array.length, 48000);
-          audioBuffer.getChannelData(0).set(float32Array);
+          if (!audioBuffer) {
+            throw new Error('Failed to create audio buffer');
+          }
+          
+          const channelData = audioBuffer.getChannelData(0);
+          if (!channelData) {
+            throw new Error('Failed to get channel data');
+          }
+          
+          channelData.set(float32Array);
+          
+          // Create and configure buffer source
           this.currentSource = this.audioContext.createBufferSource();
+          if (!this.currentSource) {
+            throw new Error('Failed to create buffer source');
+          }
+          
           this.currentSource.buffer = audioBuffer;
           this.currentSource.connect(this.audioContext.destination);
-          this.currentSource.onended = () => { this.currentSource = null; this.playNextAudio(); };
+          
+          this.currentSource.onended = () => { 
+            this.currentSource = null; 
+            this.playNextAudio(); 
+          };
+          
+          this.currentSource.onerror = (error) => {
+            console.error('Audio source error:', error);
+            this.currentSource = null;
+            this.playNextAudio();
+          };
+          
           this.currentSource.start();
+          
         } catch (error) {
           console.error("Error playing audio:", error);
-          this.currentSource = null;
+          if (this.currentSource) {
+            try {
+              this.currentSource.disconnect();
+            } catch (e) {
+              // Ignore disconnect errors
+            }
+            this.currentSource = null;
+          }
+          // Continue with next audio
           this.playNextAudio();
         }
       }
@@ -616,6 +767,8 @@
             disconnect();
         });
     }
+
+    console.log("Voice client initialized");
 
     function disconnect() {
       isActive = false;

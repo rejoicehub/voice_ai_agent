@@ -1,48 +1,94 @@
-
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <style>
+(function() {
+    'use strict';
+  
+    // --- 1. HTML and CSS are stored as strings to be injected ---
+  
+    const WIDGET_HTML = `
+      <div id="ai-voice-agent-container">
+        <div class="connection-orb-main" id="connectionOrb">
+          <div class="connection-button-main">
+            <div class="connection-orb">
+              <svg viewBox="0 0 100 100" class="globe-rotate">
+                <g>
+                  <circle class="neuron" cx="50" cy="15" r="3" />
+                  <circle class="neuron" cx="75" cy="25" r="2.5" />
+                  <circle class="neuron" cx="85" cy="50" r="3" />
+                  <circle class="neuron" cx="75" cy="75" r="2.5" />
+                  <circle class="neuron" cx="50" cy="85" r="3" />
+                  <circle class="neuron" cx="25" cy="75" r="2.5" />
+                  <circle class="neuron" cx="15" cy="50" r="3" />
+                  <circle class="neuron" cx="25" cy="25" r="2.5" />
+                  <line class="neuron-connection" x1="50" y1="15" x2="75" y2="25"/>
+                  <line class="neuron-connection" x1="75" y1="25" x2="85" y2="50"/>
+                  <line class="neuron-connection" x1="85" y1="50" x2="75" y2="75"/>
+                  <line class="neuron-connection" x1="75" y1="75" x2="50" y2="85"/>
+                  <line class="neuron-connection" x1="50" y1="85" x2="25" y2="75"/>
+                  <line class="neuron-connection" x1="25" y1="75" x2="15" y2="50"/>
+                  <line class="neuron-connection" x1="15" y1="50" x2="25" y2="25"/>
+                  <line class="neuron-connection" x1="25" y1="25" x2="50" y2="15"/>
+                </g>
+              </svg>
+            </div>
+            <div class="connect-text">
+              <span>AI Voice Agent</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="chat-session-modal" id="chatSessionModal">
+            <div class="status" id="status">
+              <div class="status-text" id="statusText"></div>
+              <div class="status-subtext" id="statusSubtext"></div>
+            </div>
+            <div class="voice-chat-view" id="voiceChatView">
+                <div class="voice-glob"></div>
+                <div class="voice-waves" id="voiceWaves">
+                    <div class="wave"></div>
+                    <div class="wave"></div>
+                    <div class="wave"></div>
+                </div>
+            </div>
+            <button class="disconnect-button" id="disconnectButton">End Call</button>
+        </div>
+            
+        <div class="error-message" id="errorMessage"></div>
+      </div>
+    `;
+  
+    const WIDGET_CSS = `
       @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
-
+  
       :root {
-        --primary: #f77f00; /* Dark Orange */
-        --secondary: #fcbf49; /* Light Orange/Yellow */
-        --accent: #d62828; /* Reddish for errors */
+        --primary: #f77f00;
+        --secondary: #fcbf49;
+        --accent: #d62828;
         --light: #f8fafc;
         --dark: #1e293b;
         --white: #ffffff;
         --pulse-color: rgba(247, 127, 0, 0.8);
-        --color-orange-dark: 247, 91, 28;
-        --color-orange-light: 251, 176, 52;
-        --color-black: 10, 10, 10;
-        --rotation-duration: 6s;
-        --dynamic-border-radius: 55%;
       }
-
-      * {
+  
+      #ai-voice-agent-container *, #ai-voice-agent-container *::before, #ai-voice-agent-container *::after {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
       }
-
-      body {
-        font-family: "Poppins", sans-serif;
-        background: transparent;
-        color: var(--white);
-      }
-
+  
       #ai-voice-agent-container {
+        font-family: "Poppins", sans-serif;
+        color: var(--white);
         position: fixed;
         bottom: 20px;
         right: 20px;
         z-index: 9999;
       }
-
+  
       .connection-orb-main {
         position: relative;
         z-index: 5;
         cursor: pointer;
       }
-
+  
       .connection-button-main {
         display: flex;
         align-items: center;
@@ -54,7 +100,7 @@
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         transition: all 0.3s ease;
       }
-
+  
       .connect-text span {
         font-size: 16px;
         font-weight: 600;
@@ -66,23 +112,21 @@
         transition: all 0.3s ease;
       }
       
-      /* Hide text when chat is active */
       .chat-active .connect-text span {
           font-size: 0px;
           opacity: 0;
       }
        .chat-active .connection-button-main {
-           padding-right: 0;
-           width: 50px;
+          padding-right: 0;
+          width: 50px;
        }
-
-
+  
       .connection-orb {
         width: 50px;
         height: 50px;
         border-radius: 50%;
         background: linear-gradient(135deg, var(--primary), var(--secondary));
-        box-shadow: 0 0 20px rgba(var(--color-orange-dark), 0.5);
+        box-shadow: 0 0 20px rgba(247, 91, 28, 0.5);
         display: flex;
         justify-content: center;
         align-items: center;
@@ -93,11 +137,10 @@
         width: 40px;
         height: 40px;
       }
-
-      /* ✅ MODAL: This is the new container for the active chat session */
+  
       .chat-session-modal {
         position: fixed;
-        bottom: 85px; /* Position above the orb button */
+        bottom: 85px;
         right: 20px;
         width: 320px;
         height: 420px;
@@ -106,14 +149,11 @@
         -webkit-backdrop-filter: blur(15px) saturate(180%);
         border-radius: 24px;
         border: 1px solid rgba(255, 255, 255, 0.125);
-        
         display: flex;
         flex-direction: column;
         justify-content: space-evenly;
         align-items: center;
         padding: 20px;
-
-        /* Animation */
         opacity: 0;
         visibility: hidden;
         transform: translateY(20px);
@@ -125,7 +165,7 @@
           visibility: visible;
           transform: translateY(0);
       }
-
+  
       .voice-chat-view {
         position: relative;
         width: 200px;
@@ -134,7 +174,7 @@
         justify-content: center;
         align-items: center;
       }
-
+  
       .voice-glob {
         width: 65%;
         height: 65%;
@@ -144,82 +184,27 @@
         position: relative;
         animation: soft-movement 8s ease-in-out infinite alternate;
       }
-
+  
       @keyframes soft-movement {
         from { transform: scale(1); }
         to { transform: scale(1.05); }
-      }
-
-      .voice-waves {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 100%;
-        height: 100%;
-      }
-
-      .voice-waves .wave {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        border: 2px solid rgba(255, 255, 255, 0.5);
-        border-radius: 50%;
-        opacity: 0;
-        transform: translate(-50%, -50%) scale(0.8);
-      }
-      
-      .speaker-bubbles {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-      }
-
-      .speaker-bubbles .bubble {
-        width: 25px;
-        height: 25px;
-        border-radius: 50%;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-      }
-
-      .speaker-bubbles .ai-speaker {
-        background-color: var(--primary);
-        box-shadow: 0 0 15px var(--primary);
-      }
-
-      .speaker-bubbles .user-speaker {
-        background-color: var(--secondary);
-        box-shadow: 0 0 15px var(--secondary);
       }
       
       .status {
           position: relative;
           text-align: center;
       }
-
+  
       .status-text {
         font-size: 1.2rem;
         font-weight: 600;
         color: var(--white);
         margin-bottom: 5px;
       }
-
+  
       .status-subtext {
         font-size: 0.9rem;
         color: rgba(255, 255, 255, 0.7);
-      }
-
-      .connection-orb-waves-main {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
       }
       
       .disconnect-button {
@@ -236,7 +221,7 @@
         cursor: pointer;
         transition: all 0.3s ease-in-out;
       }
-
+  
       .disconnect-button:hover {
         background: linear-gradient(135deg, var(--secondary), var(--primary));
       }
@@ -267,7 +252,7 @@
         fill: var(--white);
         filter: drop-shadow(0 0 3px var(--pulse-color));
       }
-
+  
       .neuron-connection {
         stroke: var(--white);
         stroke-width: 1;
@@ -278,82 +263,39 @@
         animation: globe-rotate 60s linear infinite;
         transform-origin: center;
       }
-
+  
       @keyframes globe-rotate {
         from { transform: rotate(0deg); }
         to { transform: rotate(360deg); }
       }
-
-    </style>
-    <div id="ai-voice-agent-container">
-      <div class="connection-orb-main" id="connectionOrb">
-        <div class="connection-button-main">
-          <div class="connection-orb">
-            <svg viewBox="0 0 100 100" class="globe-rotate">
-                <g>
-                  <circle class="neuron" cx="50" cy="15" r="3" />
-                  <circle class="neuron" cx="75" cy="25" r="2.5" />
-                  <circle class="neuron" cx="85" cy="50" r="3" />
-                  <circle class="neuron" cx="75" cy="75" r="2.5" />
-                  <circle class="neuron" cx="50" cy="85" r="3" />
-                  <circle class="neuron" cx="25" cy="75" r="2.5" />
-                  <circle class="neuron" cx="15" cy="50" r="3" />
-                  <circle class="neuron" cx="25" cy="25" r="2.5" />
-                  <line class="neuron-connection" x1="50" y1="15" x2="75" y2="25"/>
-                  <line class="neuron-connection" x1="75" y1="25" x2="85" y2="50"/>
-                  <line class="neuron-connection" x1="85" y1="50" x2="75" y2="75"/>
-                  <line class="neuron-connection" x1="75" y1="75" x2="50" y2="85"/>
-                  <line class="neuron-connection" x1="50" y1="85" x2="25" y2="75"/>
-                  <line class="neuron-connection" x1="25" y1="75" x2="15" y2="50"/>
-                  <line class="neuron-connection" x1="15" y1="50" x2="25" y2="25"/>
-                  <line class="neuron-connection" x1="25" y1="25" x2="50" y2="15"/>
-                </g>
-            </svg>
-          </div>
-          <div class="connect-text">
-            <span>AI Voice Agent</span>
-          </div>
-        </div>
-      </div>
-      
-      <div class="chat-session-modal" id="chatSessionModal">
-          <div class="status" id="status">
-            <div class="status-text" id="statusText"></div>
-            <div class="status-subtext" id="statusSubtext"></div>
-          </div>
-          <div class="voice-chat-view" id="voiceChatView">
-                <div class="voice-glob"></div>
-                <div class="voice-waves" id="voiceWaves">
-                    <div class="wave"></div>
-                    <div class="wave"></div>
-                    <div class="wave"></div>
-                </div>
-                <div class="speaker-bubbles" id="speakerBubbles"></div>
-          </div>
-          <button class="disconnect-button" id="disconnectButton">End Call</button>
-      </div>
-       
-      <div class="error-message" id="errorMessage"></div>
-    </div>
-
-    <script>
+    `;
+  
+    // --- 2. Main script logic ---
+  
+    function initializeWidget() {
+      // Inject CSS
+      const styleTag = document.createElement('style');
+      styleTag.innerHTML = WIDGET_CSS;
+      document.head.appendChild(styleTag);
+  
+      // Inject HTML
+      const widgetContainer = document.createElement('div');
+      widgetContainer.innerHTML = WIDGET_HTML;
+      document.body.appendChild(widgetContainer);
+  
       // DOM Elements
       const connectionOrb = document.getElementById("connectionOrb");
       const chatSessionModal = document.getElementById("chatSessionModal");
-      const status = document.getElementById("status");
       const statusText = document.getElementById("statusText");
       const statusSubtext = document.getElementById("statusSubtext");
       const disconnectButton = document.getElementById("disconnectButton");
       const errorMessage = document.getElementById("errorMessage");
-      const speakerBubbles = document.getElementById("speakerBubbles");
-
+  
       // State variables
       let isActive = false;
       let isConnecting = false;
-      let waveAnimation = null;
-
+  
       class VoiceCallClient {
-        // ... (The entire class remains the same as the previous version)
         constructor() {
           this.ws = null;
           this.mediaStream = null;
@@ -365,15 +307,17 @@
           this.isPlaying = false;
           this.currentSource = null;
         }
-
+  
         async startCall() {
           try {
             this.mediaStream = await navigator.mediaDevices.getUserMedia({
               audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, sampleRate: 48000, channelCount: 1, },
             });
-            this.audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 48000, latencyHint: "interactive" });
-            if (this.audioContext.state === "suspended") { await this.audioContext.resume(); }
-            
+            this.audioContext = new(window.AudioContext || window.webkitAudioContext)({ sampleRate: 48000, latencyHint: "interactive" });
+            if (this.audioContext.state === "suspended") {
+              await this.audioContext.resume();
+            }
+  
             this.ws = new WebSocket(`wss://python.callai.rejoicehub.com/ws/web-call?agent_id=agent_01jz81x78pezzsbexr67b1qxd4`);
             this.ws.onopen = () => this.handleWebSocketOpen();
             this.ws.onmessage = (event) => this.handleWebSocketMessage(event);
@@ -385,44 +329,44 @@
             throw error;
           }
         }
-
+  
         handleWebSocketOpen() {
           this.isConnected = true;
           console.log("WebSocket connection established");
           this.startAudioProcessing();
           this.ws.send(JSON.stringify({ type: "config", sampleRate: 48000 }));
         }
-
+  
         handleWebSocketMessage(event) {
           try {
             const data = JSON.parse(event.data);
             switch (data.type) {
               case "audio": this.queueAudio(data.audio); break;
-              case "transcript": showSpeakerIndicator(data.data.speaker); break;
+              case "transcript": console.log("Speaker:", data.data.speaker); break; // Simple log instead of animation
               case "clear_audio": this.clearAudioQueue(); break;
               case "error": showError(data.message); break;
             }
           } catch (error) { console.error("Error handling message:", error); }
         }
-
+  
         handleWebSocketError(error) {
           console.error("WebSocket error:", error);
           showError("Connection error occurred");
         }
-
+  
         handleWebSocketClose() {
           this.isConnected = false;
           console.log("WebSocket connection closed");
           if (isActive) { disconnect(); }
         }
-
+  
         startAudioProcessing() {
           this.source = this.audioContext.createMediaStreamSource(this.mediaStream);
           const bufferSize = 2048;
           this.processor = this.audioContext.createScriptProcessor(bufferSize, 1, 1);
           this.source.connect(this.processor);
           this.processor.connect(this.audioContext.destination);
-
+  
           this.processor.onaudioprocess = (e) => {
             if (!this.isConnected) return;
             const inputData = e.inputBuffer.getChannelData(0);
@@ -437,7 +381,7 @@
             }
           };
         }
-
+  
         clearAudioQueue() {
           this.audioQueue = [];
           if (this.currentSource) {
@@ -446,16 +390,15 @@
           }
           this.isPlaying = false;
         }
-
+  
         queueAudio(audioBase64) {
           this.audioQueue.push(audioBase64);
           if (!this.isPlaying) { this.playNextAudio(); }
         }
-
+  
         async playNextAudio() {
           if (this.audioQueue.length === 0) {
             this.isPlaying = false;
-            showSpeakerIndicator("none");
             return;
           }
           this.isPlaying = true;
@@ -480,13 +423,13 @@
             this.playNextAudio();
           }
         }
-
+  
         endCall() {
           this.isConnected = false;
           if (this.ws && this.ws.readyState === WebSocket.OPEN) { this.ws.close(); }
           this.cleanup();
         }
-
+  
         cleanup() {
           this.clearAudioQueue();
           if (this.processor) { this.processor.disconnect(); this.processor = null; }
@@ -497,89 +440,62 @@
           this.isPlaying = false;
         }
       }
-
+  
       const voiceClient = new VoiceCallClient();
-
+  
       connectionOrb.addEventListener("click", () => {
         if (!isActive && !isConnecting) { startVoiceChat(); }
       });
-
+  
       disconnectButton.addEventListener("click", () => { disconnect(); });
-
+  
       function showError(message) {
         errorMessage.textContent = message;
         errorMessage.classList.add("visible");
         setTimeout(() => { errorMessage.classList.remove("visible"); }, 5000);
       }
-      
+  
       function updateStatus(mainText, subText) {
-          statusText.textContent = mainText;
-          statusSubtext.textContent = subText;
+        statusText.textContent = mainText;
+        statusSubtext.textContent = subText;
       }
-
-      // ✅ LOGIC: Updated to show modal instead of moving the orb
+  
       function startVoiceChat() {
         if (isConnecting) return;
         isConnecting = true;
-        
+  
         connectionOrb.classList.add('chat-active');
         chatSessionModal.classList.add('visible');
         updateStatus("Connecting...", "Please wait");
-        
+  
         voiceClient.startCall()
           .then(() => {
-              isConnecting = false;
-              isActive = true;
-              updateStatus("Connected", "You can start speaking now");
-              startWaveAnimation();
+            isConnecting = false;
+            isActive = true;
+            updateStatus("Connected", "You can start speaking now");
           })
           .catch((error) => {
-              showError("Failed to start call: " + error.message);
-              disconnect();
+            showError("Failed to start call: " + error.message);
+            disconnect();
           });
       }
-
-      // ✅ LOGIC: Updated to hide modal
+  
       function disconnect() {
         isActive = false;
         isConnecting = false;
         voiceClient.endCall();
-        
+  
         connectionOrb.classList.remove('chat-active');
         chatSessionModal.classList.remove('visible');
-        stopWaveAnimation();
-        showSpeakerIndicator("none");
       }
-
-      function startWaveAnimation() {
-        if (waveAnimation) waveAnimation.kill();
-        waveAnimation = gsap.timeline({ repeat: -1 });
-        const waves = document.querySelectorAll(".voice-waves .wave");
-        waves.forEach((wave, index) => {
-          waveAnimation.fromTo(wave,
-            { width: "70%", height: "70%", opacity: 0.7, transform: "translate(-50%, -50%) scale(0.8)" },
-            { width: "120%", height: "120%", opacity: 0, transform: "translate(-50%, -50%) scale(1.2)", duration: 3, ease: "power1.out" },
-            index * 1);
-        });
-      }
-
-      function stopWaveAnimation() {
-        if (waveAnimation) { waveAnimation.kill(); waveAnimation = null; }
-      }
-      
-      function showSpeakerIndicator(speaker) {
-            speakerBubbles.innerHTML = ''; // Clear previous bubbles
-            if (speaker === 'none') return;
-
-            const bubble = document.createElement('div');
-            bubble.classList.add('bubble');
-            if (speaker === 'user') {
-                bubble.classList.add('user-speaker');
-            } else {
-                bubble.classList.add('ai-speaker');
-            }
-            speakerBubbles.appendChild(bubble);
-            gsap.to(bubble, { opacity: 1, duration: 0.3 });
-      }
-
-    </script>
+    }
+  
+    // --- 3. Initialize the widget when the DOM is ready ---
+  
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeWidget);
+    } else {
+      initializeWidget();
+    }
+  
+  })();

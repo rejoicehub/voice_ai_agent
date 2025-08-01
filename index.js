@@ -10,15 +10,20 @@
   // Load GSAP if not already loaded
   function loadGSAP(callback) {
     if (window.gsap) {
-      callback();
+      // Wait a bit to ensure GSAP is fully initialized
+      setTimeout(callback, 100);
       return;
     }
     
     const script = document.createElement('script');
     script.src = 'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js';
-    script.onload = callback;
+    script.onload = function() {
+      // Wait for GSAP to be fully available
+      setTimeout(callback, 200);
+    };
     script.onerror = function() {
       console.error('Failed to load GSAP library');
+      callback(); // Continue without GSAP
     };
     document.head.appendChild(script);
   }
@@ -196,6 +201,39 @@
         border-radius: 50%;
         opacity: 0;
         transform: translate(-50%, -50%) scale(0.8);
+        width: 70%;
+        height: 70%;
+      }
+      
+      .voice-waves.active .wave {
+        animation: wave-pulse 3s ease-out infinite;
+      }
+      
+      .voice-waves.active .wave:nth-child(1) {
+        animation-delay: 0s;
+      }
+      
+      .voice-waves.active .wave:nth-child(2) {
+        animation-delay: 1s;
+      }
+      
+      .voice-waves.active .wave:nth-child(3) {
+        animation-delay: 2s;
+      }
+      
+      @keyframes wave-pulse {
+        0% {
+          width: 70%;
+          height: 70%;
+          opacity: 0.7;
+          transform: translate(-50%, -50%) scale(0.8);
+        }
+        100% {
+          width: 120%;
+          height: 120%;
+          opacity: 0;
+          transform: translate(-50%, -50%) scale(1.2);
+        }
       }
       
       .speaker-bubbles {
@@ -592,20 +630,58 @@
 
     function startWaveAnimation() {
       if (waveAnimation) waveAnimation.kill();
-      if (!window.gsap) return;
       
-      waveAnimation = window.gsap.timeline({ repeat: -1 });
-      const waves = container.querySelectorAll(".voice-waves .wave");
-      waves.forEach((wave, index) => {
-        waveAnimation.fromTo(wave,
-          { width: "70%", height: "70%", opacity: 0.7, transform: "translate(-50%, -50%) scale(0.8)" },
-          { width: "120%", height: "120%", opacity: 0, transform: "translate(-50%, -50%) scale(1.2)", duration: 3, ease: "power1.out" },
-          index * 1);
-      });
+      const voiceWaves = container.querySelector("#voiceWaves");
+      
+      // Try GSAP first, fallback to CSS animation
+      if (window.gsap && window.gsap.timeline) {
+        try {
+          waveAnimation = window.gsap.timeline({ repeat: -1 });
+          const waves = container.querySelectorAll(".voice-waves .wave");
+          
+          waves.forEach((wave, index) => {
+            waveAnimation.fromTo(wave,
+              { 
+                width: "70%", 
+                height: "70%", 
+                opacity: 0.7, 
+                scale: 0.8
+              },
+              { 
+                width: "120%", 
+                height: "120%", 
+                opacity: 0, 
+                scale: 1.2, 
+                duration: 3, 
+                ease: "power1.out" 
+              },
+              index * 1
+            );
+          });
+          
+          console.log("GSAP wave animation started");
+          return;
+        } catch (error) {
+          console.warn("GSAP animation failed, using CSS fallback:", error);
+        }
+      }
+      
+      // CSS animation fallback
+      voiceWaves.classList.add('active');
+      console.log("CSS wave animation started");
     }
 
     function stopWaveAnimation() {
-      if (waveAnimation) { waveAnimation.kill(); waveAnimation = null; }
+      if (waveAnimation) { 
+        waveAnimation.kill(); 
+        waveAnimation = null; 
+      }
+      
+      // Also stop CSS animation
+      const voiceWaves = container.querySelector("#voiceWaves");
+      if (voiceWaves) {
+        voiceWaves.classList.remove('active');
+      }
     }
     
     function showSpeakerIndicator(speaker) {

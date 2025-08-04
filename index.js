@@ -187,8 +187,11 @@
           if (this.audioContext.state === "suspended") {
             await this.audioContext.resume();
           }
-          const wsUrl = `wss://python.callai.rejoicehub.com/ws/web-call?agent_id=agent_01jz81x78pezzsbexr67b1qxd4`;
-          this.ws = new WebSocket(wsUrl);
+          const domain = "python.callai.rejoicehub.com"
+          const currentScript = document.currentScript;
+          const agent_id = currentScript.getAttribute('call-intel-id');
+          const wsUrl = `wss://${domain}/ws/web-call?agent_id=${agent_id}`;
+          this.ws = new WebSocket(wsUrl);                       
           if (!this.ws) {
             throw new Error('Failed to create WebSocket connection');
           }

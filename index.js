@@ -1,6 +1,6 @@
 (function() {
   'use strict';
-  
+
   // Prevent multiple initializations
   if (window.AIVoiceAgentInitialized) {
     return;
@@ -14,7 +14,7 @@
       setTimeout(callback, 100);
       return;
     }
-    
+
     const script = document.createElement('script');
     script.src = 'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js';
     script.onload = function() {
@@ -33,194 +33,21 @@
     if (document.querySelector('link[href*="fonts.googleapis.com/css2?family=Poppins"]')) {
       return;
     }
-    
+
     const link = document.createElement('link');
     link.rel = 'stylesheet';
     link.href = 'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap';
     document.head.appendChild(link);
   }
 
-  // Inject CSS styles
+  // Inject keyframes, as they cannot be inlined
   function injectStyles() {
     const style = document.createElement('style');
     style.textContent = `
-      :root {
-        --primary: #f77f00;
-        --secondary: #fcbf49;
-        --accent: #d62828;
-        --light: #f8fafc;
-        --dark: #1e293b;
-        --white: #ffffff;
-        --pulse-color: rgba(247, 127, 0, 0.8);
-        --color-orange-dark: 247, 91, 28;
-        --color-orange-light: 251, 176, 52;
-        --color-black: 10, 10, 10;
-        --rotation-duration: 6s;
-        --dynamic-border-radius: 55%;
-      }
-
-      #ai-voice-agent-container {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        z-index: 9999;
-        font-family: "Poppins", sans-serif;
-      }
-
-      #ai-voice-agent-container * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      .connection-orb-main {
-        position: relative;
-        z-index: 5;
-        cursor: pointer;
-      }
-
-      .connection-button-main {
-        display: flex;
-        align-items: center;
-        border: none;
-        border-radius: 50px;
-        gap: 10px;
-        padding-right: 10px;
-        background-color: #fff;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        transition: all 0.3s ease;
-      }
-
-      .connect-text span {
-        font-size: 16px;
-        font-weight: 600;
-        line-height: 20px;
-        background: linear-gradient(135deg, var(--primary), var(--secondary));
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        color: transparent;
-        text-transform: capitalize;
-        transition: all 0.3s ease;
-      }
-      
-      .chat-active .connect-text span {
-          font-size: 0px;
-          opacity: 0;
-      }
-       .chat-active .connection-button-main {
-           padding-right: 0;
-           width: 50px;
-       }
-
-      .connection-orb {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, var(--primary), var(--secondary));
-        box-shadow: 0 0 20px rgba(var(--color-orange-dark), 0.5);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        position: relative;
-      }
-      
-      .connection-orb svg {
-        width: 40px;
-        height: 40px;
-      }
-
-      .chat-session-modal {
-        position: fixed;
-        bottom: 85px;
-        right: 20px;
-        width: 320px;
-        height: 420px;
-        background: rgba(30, 41, 59, 0.8);
-        backdrop-filter: blur(15px) saturate(180%);
-        -webkit-backdrop-filter: blur(15px) saturate(180%);
-        border-radius: 24px;
-        border: 1px solid rgba(255, 255, 255, 0.125);
-        
-        display: flex;
-        flex-direction: column;
-        justify-content: space-evenly;
-        align-items: center;
-        padding: 20px;
-
-        opacity: 0;
-        visibility: hidden;
-        transform: translateY(20px);
-        transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-      }
-      
-      .chat-session-modal.visible {
-          opacity: 1;
-          visibility: visible;
-          transform: translateY(0);
-      }
-
-      .voice-chat-view {
-        position: relative;
-        width: 200px;
-        height: 200px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
-
-      .voice-glob {
-        width: 65%;
-        height: 65%;
-        background-color: #f5f5f5;
-        border-radius: 50%;
-        box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.2), 0 0 30px rgba(255, 255, 255, 0.3);
-        position: relative;
-        animation: soft-movement 8s ease-in-out infinite alternate;
-      }
-
       @keyframes soft-movement {
         from { transform: scale(1); }
         to { transform: scale(1.05); }
       }
-
-      .voice-waves {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 100%;
-        height: 100%;
-      }
-
-      .voice-waves .wave {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        border: 2px solid rgba(255, 255, 255, 0.5);
-        border-radius: 50%;
-        opacity: 0;
-        transform: translate(-50%, -50%) scale(0.8);
-        width: 70%;
-        height: 70%;
-      }
-      
-      .voice-waves.active .wave {
-        animation: wave-pulse 3s ease-out infinite;
-      }
-      
-      .voice-waves.active .wave:nth-child(1) {
-        animation-delay: 0s;
-      }
-      
-      .voice-waves.active .wave:nth-child(2) {
-        animation-delay: 1s;
-      }
-      
-      .voice-waves.active .wave:nth-child(3) {
-        animation-delay: 2s;
-      }
-      
       @keyframes wave-pulse {
         0% {
           width: 70%;
@@ -235,117 +62,6 @@
           transform: translate(-50%, -50%) scale(1.2);
         }
       }
-      
-      .speaker-bubbles {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-      }
-
-      .speaker-bubbles .bubble {
-        width: 25px;
-        height: 25px;
-        border-radius: 50%;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-      }
-
-      .speaker-bubbles .ai-speaker {
-        background-color: var(--primary);
-        box-shadow: 0 0 15px var(--primary);
-      }
-
-      .speaker-bubbles .user-speaker {
-        background-color: var(--secondary);
-        box-shadow: 0 0 15px var(--secondary);
-      }
-      
-      .status {
-          position: relative;
-          text-align: center;
-      }
-
-      .status-text {
-        font-size: 1.2rem;
-        font-weight: 600;
-        color: var(--white);
-        margin-bottom: 5px;
-      }
-
-      .status-subtext {
-        font-size: 0.9rem;
-        color: rgba(255, 255, 255, 0.7);
-      }
-
-      .connection-orb-waves-main {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-      }
-      
-      .disconnect-button {
-        position: relative;
-        width: auto;
-        padding: 10px 25px;
-        background: linear-gradient(135deg, var(--primary), var(--secondary));
-        border: none;
-        outline: none;
-        border-radius: 30px;
-        color: var(--white);
-        font-family: "Poppins", sans-serif;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.3s ease-in-out;
-      }
-
-      .disconnect-button:hover {
-        background: linear-gradient(135deg, var(--secondary), var(--primary));
-      }
-      
-      .error-message {
-        position: fixed;
-        bottom: 20px;
-        left: 20px;
-        width: calc(100% - 40px);
-        max-width: 350px;
-        background: rgba(214, 40, 40, 0.2);
-        backdrop-filter: blur(10px);
-        color: var(--white);
-        padding: 15px 25px;
-        border-radius: 30px;
-        border: 1px solid rgba(214, 40, 40, 0.3);
-        z-index: 10000;
-        opacity: 0;
-        visibility: hidden;
-        transition: all 0.3s ease;
-      }
-      .error-message.visible {
-          opacity: 1;
-          visibility: visible;
-      }
-      
-      .neuron {
-        fill: var(--white);
-        filter: drop-shadow(0 0 3px var(--pulse-color));
-      }
-
-      .neuron-connection {
-        stroke: var(--white);
-        stroke-width: 1;
-        opacity: 0.6;
-      }
-      
-      .globe-rotate {
-        animation: globe-rotate 60s linear infinite;
-        transform-origin: center;
-      }
-
       @keyframes globe-rotate {
         from { transform: rotate(0deg); }
         to { transform: rotate(360deg); }
@@ -354,71 +70,76 @@
     document.head.appendChild(style);
   }
 
-  // Create HTML structure
+  // Create HTML structure with inline CSS
   function createHTML() {
     const container = document.createElement('div');
     container.id = 'ai-voice-agent-container';
+    container.style.cssText = "position: fixed; bottom: 20px; right: 20px; z-index: 9999; font-family: 'Poppins', sans-serif;";
+
     container.innerHTML = `
-      <div class="connection-orb-main" id="connectionOrb">
-        <div class="connection-button-main">
-          <div class="connection-orb">
-            <svg viewBox="0 0 100 100" class="globe-rotate">
-                <g>
-                  <circle class="neuron" cx="50" cy="15" r="3" />
-                  <circle class="neuron" cx="75" cy="25" r="2.5" />
-                  <circle class="neuron" cx="85" cy="50" r="3" />
-                  <circle class="neuron" cx="75" cy="75" r="2.5" />
-                  <circle class="neuron" cx="50" cy="85" r="3" />
-                  <circle class="neuron" cx="25" cy="75" r="2.5" />
-                  <circle class="neuron" cx="15" cy="50" r="3" />
-                  <circle class="neuron" cx="25" cy="25" r="2.5" />
-                  <line class="neuron-connection" x1="50" y1="15" x2="75" y2="25"/>
-                  <line class="neuron-connection" x1="75" y1="25" x2="85" y2="50"/>
-                  <line class="neuron-connection" x1="85" y1="50" x2="75" y2="75"/>
-                  <line class="neuron-connection" x1="75" y1="75" x2="50" y2="85"/>
-                  <line class="neuron-connection" x1="50" y1="85" x2="25" y2="75"/>
-                  <line class="neuron-connection" x1="25" y1="75" x2="15" y2="50"/>
-                  <line class="neuron-connection" x1="15" y1="50" x2="25" y2="25"/>
-                  <line class="neuron-connection" x1="25" y1="25" x2="50" y2="15"/>
+      <div id="connectionOrb" style="margin: 0; padding: 0; box-sizing: border-box; position: relative; z-index: 5; cursor: pointer;">
+        <div id="connectionButtonMain" style="margin: 0; padding: 0; box-sizing: border-box; display: flex; align-items: center; border: none; border-radius: 50px; gap: 10px; padding-right: 10px; background-color: #fff; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); transition: all 0.3s ease;">
+          <div style="margin: 0; padding: 0; box-sizing: border-box; width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #f77f00, #fcbf49); box-shadow: 0 0 20px rgba(247, 91, 28, 0.5); display: flex; justify-content: center; align-items: center; position: relative;">
+            <svg viewBox="0 0 100 100" style="margin: 0; padding: 0; box-sizing: border-box; width: 40px; height: 40px; animation: globe-rotate 60s linear infinite; transform-origin: center;">
+                <g style="margin: 0; padding: 0; box-sizing: border-box;">
+                  <circle cx="50" cy="15" r="3" style="fill: #ffffff; filter: drop-shadow(0 0 3px rgba(247, 127, 0, 0.8));" />
+                  <circle cx="75" cy="25" r="2.5" style="fill: #ffffff; filter: drop-shadow(0 0 3px rgba(247, 127, 0, 0.8));" />
+                  <circle cx="85" cy="50" r="3" style="fill: #ffffff; filter: drop-shadow(0 0 3px rgba(247, 127, 0, 0.8));" />
+                  <circle cx="75" cy="75" r="2.5" style="fill: #ffffff; filter: drop-shadow(0 0 3px rgba(247, 127, 0, 0.8));" />
+                  <circle cx="50" cy="85" r="3" style="fill: #ffffff; filter: drop-shadow(0 0 3px rgba(247, 127, 0, 0.8));" />
+                  <circle cx="25" cy="75" r="2.5" style="fill: #ffffff; filter: drop-shadow(0 0 3px rgba(247, 127, 0, 0.8));" />
+                  <circle cx="15" cy="50" r="3" style="fill: #ffffff; filter: drop-shadow(0 0 3px rgba(247, 127, 0, 0.8));" />
+                  <circle cx="25" cy="25" r="2.5" style="fill: #ffffff; filter: drop-shadow(0 0 3px rgba(247, 127, 0, 0.8));" />
+                  <line x1="50" y1="15" x2="75" y2="25" style="stroke: #ffffff; stroke-width: 1; opacity: 0.6;"/>
+                  <line x1="75" y1="25" x2="85" y2="50" style="stroke: #ffffff; stroke-width: 1; opacity: 0.6;"/>
+                  <line x1="85" y1="50" x2="75" y2="75" style="stroke: #ffffff; stroke-width: 1; opacity: 0.6;"/>
+                  <line x1="75" y1="75" x2="50" y2="85" style="stroke: #ffffff; stroke-width: 1; opacity: 0.6;"/>
+                  <line x1="50" y1="85" x2="25" y2="75" style="stroke: #ffffff; stroke-width: 1; opacity: 0.6;"/>
+                  <line x1="25" y1="75" x2="15" y2="50" style="stroke: #ffffff; stroke-width: 1; opacity: 0.6;"/>
+                  <line x1="15" y1="50" x2="25" y2="25" style="stroke: #ffffff; stroke-width: 1; opacity: 0.6;"/>
+                  <line x1="25" y1="25" x2="50" y2="15" style="stroke: #ffffff; stroke-width: 1; opacity: 0.6;"/>
                 </g>
             </svg>
           </div>
-          <div class="connect-text">
-            <span>AI Voice Agent</span>
+          <div style="margin: 0; padding: 0; box-sizing: border-box;">
+            <span id="connectTextSpan" style="margin: 0; padding: 0; box-sizing: border-box; display: inline-block; font-size: 16px; font-weight: 600; line-height: 20px; background: linear-gradient(135deg, #f77f00, #fcbf49); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; color: transparent; text-transform: capitalize; transition: all 0.3s ease;">AI Voice Agent</span>
           </div>
         </div>
       </div>
       
-      <div class="chat-session-modal" id="chatSessionModal">
-          <div class="status" id="status">
-            <div class="status-text" id="statusText"></div>
-            <div class="status-subtext" id="statusSubtext"></div>
+      <div id="chatSessionModal" style="margin: 0; padding: 20px; box-sizing: border-box; position: fixed; bottom: 85px; right: 20px; width: 320px; height: 420px; background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(15px) saturate(180%); -webkit-backdrop-filter: blur(15px) saturate(180%); border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.125); display: flex; flex-direction: column; justify-content: space-evenly; align-items: center; opacity: 0; visibility: hidden; transform: translateY(20px); transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);">
+          <div id="status" style="margin: 0; padding: 0; box-sizing: border-box; position: relative; text-align: center;">
+            <div id="statusText" style="margin: 0 0 5px 0; padding: 0; box-sizing: border-box; font-size: 1.2rem; font-weight: 600; color: #ffffff;"></div>
+            <div id="statusSubtext" style="margin: 0; padding: 0; box-sizing: border-box; font-size: 0.9rem; color: rgba(255, 255, 255, 0.7);"></div>
           </div>
-          <div class="voice-chat-view" id="voiceChatView">
-                <div class="voice-glob"></div>
-                <div class="voice-waves" id="voiceWaves">
-                    <div class="wave"></div>
-                    <div class="wave"></div>
-                    <div class="wave"></div>
-                </div>
-                <div class="speaker-bubbles" id="speakerBubbles"></div>
+          <div id="voiceChatView" style="margin: 0; padding: 0; box-sizing: border-box; position: relative; width: 200px; height: 200px; display: flex; justify-content: center; align-items: center;">
+              <div style="margin: 0; padding: 0; box-sizing: border-box; width: 65%; height: 65%; background-color: #f5f5f5; border-radius: 50%; box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.2), 0 0 30px rgba(255, 255, 255, 0.3); position: relative; animation: soft-movement 8s ease-in-out infinite alternate;"></div>
+              <div id="voiceWaves" style="margin: 0; padding: 0; box-sizing: border-box; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; height: 100%;">
+                  <div class="wave" style="margin: 0; padding: 0; box-sizing: border-box; position: absolute; top: 50%; left: 50%; border: 2px solid rgba(255, 255, 255, 0.5); border-radius: 50%; opacity: 0; transform: translate(-50%, -50%) scale(0.8); width: 70%; height: 70%;"></div>
+                  <div class="wave" style="margin: 0; padding: 0; box-sizing: border-box; position: absolute; top: 50%; left: 50%; border: 2px solid rgba(255, 255, 255, 0.5); border-radius: 50%; opacity: 0; transform: translate(-50%, -50%) scale(0.8); width: 70%; height: 70%;"></div>
+                  <div class="wave" style="margin: 0; padding: 0; box-sizing: border-box; position: absolute; top: 50%; left: 50%; border: 2px solid rgba(255, 255, 255, 0.5); border-radius: 50%; opacity: 0; transform: translate(-50%, -50%) scale(0.8); width: 70%; height: 70%;"></div>
+              </div>
+              <div id="speakerBubbles" style="margin: 0; padding: 0; box-sizing: border-box; position: absolute; width: 100%; height: 100%;"></div>
           </div>
-          <button class="disconnect-button" id="disconnectButton">End Call</button>
+          <button id="disconnectButton" style="margin: 0; padding: 10px 25px; box-sizing: border-box; position: relative; width: auto; background: linear-gradient(135deg, #f77f00, #fcbf49); border: none; outline: none; border-radius: 30px; color: #ffffff; font-family: 'Poppins', sans-serif; font-weight: 500; cursor: pointer; transition: all 0.3s ease-in-out;">End Call</button>
       </div>
-       
-      <div class="error-message" id="errorMessage"></div>
+        
+      <div id="errorMessage" style="margin: 0; padding: 15px 25px; box-sizing: border-box; position: fixed; bottom: 20px; left: 20px; width: calc(100% - 40px); max-width: 350px; background: rgba(214, 40, 40, 0.2); backdrop-filter: blur(10px); color: #ffffff; border-radius: 30px; border: 1px solid rgba(214, 40, 40, 0.3); z-index: 10000; opacity: 0; visibility: hidden; transition: all 0.3s ease;"></div>
     `;
-    
+
     document.body.appendChild(container);
     return container;
   }
 
+
   // Initialize the voice agent
   function initializeVoiceAgent() {
     const container = createHTML();
-    
+
     // DOM Elements
     const connectionOrb = document.getElementById("connectionOrb");
+    const connectionButtonMain = document.getElementById("connectionButtonMain");
+    const connectTextSpan = document.getElementById("connectTextSpan");
     const chatSessionModal = document.getElementById("chatSessionModal");
     const status = document.getElementById("status");
     const statusText = document.getElementById("statusText");
@@ -433,7 +154,8 @@
     let waveAnimation = null;
 
     class VoiceCallClient {
-      constructor() {
+        // ... (The VoiceCallClient class remains unchanged as it handles logic, not styling)
+        constructor() {
         this.ws = null;
         this.mediaStream = null;
         this.audioContext = null;
@@ -449,51 +171,51 @@
         try {
           // Get media stream with validation
           this.mediaStream = await navigator.mediaDevices.getUserMedia({
-            audio: { 
-              echoCancellation: true, 
-              noiseSuppression: true, 
-              autoGainControl: true, 
-              sampleRate: 48000, 
-              channelCount: 1 
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true,
+              sampleRate: 48000,
+              channelCount: 1
             },
           });
-          
+
           if (!this.mediaStream) {
             throw new Error('Failed to get media stream');
           }
-          
+
           // Create audio context with validation
           const AudioContextClass = window.AudioContext || window.webkitAudioContext;
           if (!AudioContextClass) {
             throw new Error('Web Audio API is not supported');
           }
-          
-          this.audioContext = new AudioContextClass({ 
-            sampleRate: 48000, 
-            latencyHint: "interactive" 
+
+          this.audioContext = new AudioContextClass({
+            sampleRate: 48000,
+            latencyHint: "interactive"
           });
-          
+
           if (!this.audioContext) {
             throw new Error('Failed to create audio context');
           }
-          
-          if (this.audioContext.state === "suspended") { 
-            await this.audioContext.resume(); 
+
+          if (this.audioContext.state === "suspended") {
+            await this.audioContext.resume();
           }
-          
+
           // Create WebSocket with validation
           const wsUrl = `wss://python.callai.rejoicehub.com/ws/web-call?agent_id=agent_01jz81x78pezzsbexr67b1qxd4`;
           this.ws = new WebSocket(wsUrl);
-          
+
           if (!this.ws) {
             throw new Error('Failed to create WebSocket connection');
           }
-          
+
           this.ws.onopen = () => this.handleWebSocketOpen();
           this.ws.onmessage = (event) => this.handleWebSocketMessage(event);
           this.ws.onerror = (error) => this.handleWebSocketError(error);
           this.ws.onclose = () => this.handleWebSocketClose();
-          
+
         } catch (error) {
           console.error("Error starting call:", error);
           showError("Failed to start call: " + error.message);
@@ -513,12 +235,22 @@
         try {
           const data = JSON.parse(event.data);
           switch (data.type) {
-            case "audio": this.queueAudio(data.audio); break;
-            case "transcript": showSpeakerIndicator(data.data.speaker); break;
-            case "clear_audio": this.clearAudioQueue(); break;
-            case "error": showError(data.message); break;
+            case "audio":
+              this.queueAudio(data.audio);
+              break;
+            case "transcript":
+              showSpeakerIndicator(data.data.speaker);
+              break;
+            case "clear_audio":
+              this.clearAudioQueue();
+              break;
+            case "error":
+              showError(data.message);
+              break;
           }
-        } catch (error) { console.error("Error handling message:", error); }
+        } catch (error) {
+          console.error("Error handling message:", error);
+        }
       }
 
       handleWebSocketError(error) {
@@ -529,7 +261,9 @@
       handleWebSocketClose() {
         this.isConnected = false;
         console.log("WebSocket connection closed");
-        if (isActive) { disconnect(); }
+        if (isActive) {
+          disconnect();
+        }
       }
 
       startAudioProcessing() {
@@ -537,41 +271,41 @@
           if (!this.mediaStream || !this.audioContext) {
             throw new Error('Media stream or audio context not available');
           }
-          
+
           this.source = this.audioContext.createMediaStreamSource(this.mediaStream);
           if (!this.source) {
             throw new Error('Failed to create media stream source');
           }
-          
+
           const bufferSize = 2048;
-          
+
           // Check if createScriptProcessor is available
           if (this.audioContext.createScriptProcessor) {
             this.processor = this.audioContext.createScriptProcessor(bufferSize, 1, 1);
           } else {
             throw new Error('Script processor not supported');
           }
-          
+
           if (!this.processor) {
             throw new Error('Failed to create script processor');
           }
-          
+
           this.source.connect(this.processor);
           this.processor.connect(this.audioContext.destination);
 
           this.processor.onaudioprocess = (e) => {
             if (!this.isConnected || !e.inputBuffer) return;
-            
+
             try {
               const inputData = e.inputBuffer.getChannelData(0);
               if (!inputData || inputData.length === 0) return;
-              
+
               const pcm16 = new Int16Array(inputData.length);
               for (let i = 0; i < inputData.length; i++) {
                 const s = Math.max(-1, Math.min(1, inputData[i]));
                 pcm16[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
               }
-              
+
               const base64 = btoa(String.fromCharCode(...new Uint8Array(pcm16.buffer)));
               if (this.ws && this.ws.readyState === WebSocket.OPEN) {
                 this.ws.send(JSON.stringify({ type: "audio", audio: base64 }));
@@ -589,11 +323,11 @@
       clearAudioQueue() {
         this.audioQueue = [];
         if (this.currentSource) {
-          try { 
+          try {
             if (this.currentSource.buffer) {
-              this.currentSource.stop(); 
+              this.currentSource.stop();
             }
-            this.currentSource.disconnect(); 
+            this.currentSource.disconnect();
           } catch (e) {
             // Ignore errors during cleanup
           }
@@ -604,7 +338,9 @@
 
       queueAudio(audioBase64) {
         this.audioQueue.push(audioBase64);
-        if (!this.isPlaying) { this.playNextAudio(); }
+        if (!this.isPlaying) {
+          this.playNextAudio();
+        }
       }
 
       async playNextAudio() {
@@ -615,87 +351,87 @@
         }
         this.isPlaying = true;
         const audioBase64 = this.audioQueue.shift();
-        
+
         try {
           // Validate input
           if (!audioBase64 || typeof audioBase64 !== 'string') {
             throw new Error('Invalid audio data received');
           }
-          
+
           // Validate audio context
           if (!this.audioContext || this.audioContext.state === 'closed') {
             throw new Error('Audio context is not available');
           }
-          
+
           // Resume audio context if suspended
           if (this.audioContext.state === 'suspended') {
             await this.audioContext.resume();
           }
-          
+
           const binaryString = atob(audioBase64);
           if (binaryString.length === 0) {
             throw new Error('Empty audio data');
           }
-          
+
           const bytes = new Uint8Array(binaryString.length);
-          for (let i = 0; i < binaryString.length; i++) { 
-            bytes[i] = binaryString.charCodeAt(i); 
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
           }
-          
+
           // Validate byte array
           if (bytes.length === 0 || bytes.length % 2 !== 0) {
             throw new Error('Invalid audio buffer size');
           }
-          
+
           const int16Array = new Int16Array(bytes.buffer);
           const float32Array = new Float32Array(int16Array.length);
-          
+
           // Convert to float32 with validation
-          for (let i = 0; i < int16Array.length; i++) { 
+          for (let i = 0; i < int16Array.length; i++) {
             const sample = int16Array[i] / 32768.0;
             float32Array[i] = Math.max(-1, Math.min(1, sample)); // Clamp values
           }
-          
+
           // Validate array length
           if (float32Array.length === 0) {
             throw new Error('No audio samples to play');
           }
-          
+
           // Create audio buffer with validation
           const audioBuffer = this.audioContext.createBuffer(1, float32Array.length, 48000);
           if (!audioBuffer) {
             throw new Error('Failed to create audio buffer');
           }
-          
+
           const channelData = audioBuffer.getChannelData(0);
           if (!channelData) {
             throw new Error('Failed to get channel data');
           }
-          
+
           channelData.set(float32Array);
-          
+
           // Create and configure buffer source
           this.currentSource = this.audioContext.createBufferSource();
           if (!this.currentSource) {
             throw new Error('Failed to create buffer source');
           }
-          
+
           this.currentSource.buffer = audioBuffer;
           this.currentSource.connect(this.audioContext.destination);
-          
-          this.currentSource.onended = () => { 
-            this.currentSource = null; 
-            this.playNextAudio(); 
+
+          this.currentSource.onended = () => {
+            this.currentSource = null;
+            this.playNextAudio();
           };
-          
+
           this.currentSource.onerror = (error) => {
             console.error('Audio source error:', error);
             this.currentSource = null;
             this.playNextAudio();
           };
-          
+
           this.currentSource.start();
-          
+
         } catch (error) {
           console.error("Error playing audio:", error);
           if (this.currentSource) {
@@ -713,16 +449,30 @@
 
       endCall() {
         this.isConnected = false;
-        if (this.ws && this.ws.readyState === WebSocket.OPEN) { this.ws.close(); }
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+          this.ws.close();
+        }
         this.cleanup();
       }
 
       cleanup() {
         this.clearAudioQueue();
-        if (this.processor) { this.processor.disconnect(); this.processor = null; }
-        if (this.source) { this.source.disconnect(); this.source = null; }
-        if (this.mediaStream) { this.mediaStream.getTracks().forEach((track) => track.stop()); this.mediaStream = null; }
-        if (this.audioContext && this.audioContext.state !== "closed") { this.audioContext.close(); this.audioContext = null; }
+        if (this.processor) {
+          this.processor.disconnect();
+          this.processor = null;
+        }
+        if (this.source) {
+          this.source.disconnect();
+          this.source = null;
+        }
+        if (this.mediaStream) {
+          this.mediaStream.getTracks().forEach((track) => track.stop());
+          this.mediaStream = null;
+        }
+        if (this.audioContext && this.audioContext.state !== "closed") {
+          this.audioContext.close();
+          this.audioContext = null;
+        }
         this.audioQueue = [];
         this.isPlaying = false;
       }
@@ -731,40 +481,68 @@
     const voiceClient = new VoiceCallClient();
 
     connectionOrb.addEventListener("click", () => {
-      if (!isActive && !isConnecting) { startVoiceChat(); }
+      if (!isActive && !isConnecting) {
+        startVoiceChat();
+      }
     });
 
-    disconnectButton.addEventListener("click", () => { disconnect(); });
+    disconnectButton.addEventListener("click", () => {
+      disconnect();
+    });
+
+    // Handle hover effect for disconnect button
+    const originalBg = 'linear-gradient(135deg, #f77f00, #fcbf49)';
+    const hoverBg = 'linear-gradient(135deg, #fcbf49, #f77f00)';
+
+    disconnectButton.addEventListener('mouseover', () => {
+      disconnectButton.style.background = hoverBg;
+    });
+    disconnectButton.addEventListener('mouseout', () => {
+      disconnectButton.style.background = originalBg;
+    });
 
     function showError(message) {
       errorMessage.textContent = message;
-      errorMessage.classList.add("visible");
-      setTimeout(() => { errorMessage.classList.remove("visible"); }, 5000);
+      errorMessage.style.opacity = '1';
+      errorMessage.style.visibility = 'visible';
+      setTimeout(() => {
+        errorMessage.style.opacity = '0';
+        errorMessage.style.visibility = 'hidden';
+      }, 5000);
     }
-    
+
     function updateStatus(mainText, subText) {
-        statusText.textContent = mainText;
-        statusSubtext.textContent = subText;
+      statusText.textContent = mainText;
+      statusSubtext.textContent = subText;
     }
 
     function startVoiceChat() {
       if (isConnecting) return;
       isConnecting = true;
-      
-      connectionOrb.classList.add('chat-active');
-      chatSessionModal.classList.add('visible');
+
+      // Animate button collapse
+      connectTextSpan.style.fontSize = '0px';
+      connectTextSpan.style.opacity = '0';
+      connectionButtonMain.style.paddingRight = '0px';
+      connectionButtonMain.style.width = '50px';
+
+      // Show modal
+      chatSessionModal.style.opacity = '1';
+      chatSessionModal.style.visibility = 'visible';
+      chatSessionModal.style.transform = 'translateY(0px)';
+
       updateStatus("Connecting...", "Please wait");
-      
+
       voiceClient.startCall()
         .then(() => {
-            isConnecting = false;
-            isActive = true;
-            updateStatus("Connected", "You can start speaking now");
-            startWaveAnimation();
+          isConnecting = false;
+          isActive = true;
+          updateStatus("Connected", "You can start speaking now");
+          startWaveAnimation();
         })
         .catch((error) => {
-            showError("Failed to start call: " + error.message);
-            disconnect();
+          showError("Failed to start call: " + error.message);
+          disconnect();
         });
     }
 
@@ -774,87 +552,111 @@
       isActive = false;
       isConnecting = false;
       voiceClient.endCall();
-      
-      connectionOrb.classList.remove('chat-active');
-      chatSessionModal.classList.remove('visible');
+
+      // Animate button expand
+      connectTextSpan.style.fontSize = '16px';
+      connectTextSpan.style.opacity = '1';
+      connectionButtonMain.style.paddingRight = '10px';
+      connectionButtonMain.style.width = 'auto';
+
+      // Hide modal
+      chatSessionModal.style.opacity = '0';
+      chatSessionModal.style.visibility = 'hidden';
+      chatSessionModal.style.transform = 'translateY(20px)';
+
       stopWaveAnimation();
       showSpeakerIndicator("none");
     }
 
     function startWaveAnimation() {
       if (waveAnimation) waveAnimation.kill();
-      
+
       const voiceWaves = container.querySelector("#voiceWaves");
-      
+
       // Try GSAP first, fallback to CSS animation
       if (window.gsap && window.gsap.timeline) {
         try {
-          waveAnimation = window.gsap.timeline({ repeat: -1 });
-          const waves = container.querySelectorAll(".voice-waves .wave");
-          
-          waves.forEach((wave, index) => {
-            waveAnimation.fromTo(wave,
-              { 
-                width: "70%", 
-                height: "70%", 
-                opacity: 0.7, 
-                scale: 0.8
-              },
-              { 
-                width: "120%", 
-                height: "120%", 
-                opacity: 0, 
-                scale: 1.2, 
-                duration: 3, 
-                ease: "power1.out" 
-              },
-              index * 1
-            );
+          waveAnimation = window.gsap.timeline({
+            repeat: -1
           });
-          
+          const waves = container.querySelectorAll(".wave");
+
+          waves.forEach((wave, index) => {
+            waveAnimation.fromTo(wave, {
+              width: "70%",
+              height: "70%",
+              opacity: 0.7,
+              scale: 0.8
+            }, {
+              width: "120%",
+              height: "120%",
+              opacity: 0,
+              scale: 1.2,
+              duration: 3,
+              ease: "power1.out"
+            }, index * 1);
+          });
+
           console.log("GSAP wave animation started");
           return;
         } catch (error) {
           console.warn("GSAP animation failed, using CSS fallback:", error);
         }
       }
-      
+
       // CSS animation fallback
-      voiceWaves.classList.add('active');
+      const waves = container.querySelectorAll(".wave");
+      waves.forEach((wave, index) => {
+        wave.style.animation = `wave-pulse 3s ease-out infinite`;
+        wave.style.animationDelay = `${index}s`;
+      });
       console.log("CSS wave animation started");
     }
 
     function stopWaveAnimation() {
-      if (waveAnimation) { 
-        waveAnimation.kill(); 
-        waveAnimation = null; 
+      if (waveAnimation) {
+        waveAnimation.kill();
+        waveAnimation = null;
       }
-      
+
       // Also stop CSS animation
-      const voiceWaves = container.querySelector("#voiceWaves");
-      if (voiceWaves) {
-        voiceWaves.classList.remove('active');
+      const waves = container.querySelectorAll(".wave");
+      if (waves) {
+        waves.forEach(wave => {
+          wave.style.animation = 'none';
+          wave.style.animationDelay = '0s';
+        });
       }
     }
-    
-    function showSpeakerIndicator(speaker) {
-          speakerBubbles.innerHTML = '';
-          if (speaker === 'none') return;
 
-          const bubble = document.createElement('div');
-          bubble.classList.add('bubble');
-          if (speaker === 'user') {
-              bubble.classList.add('user-speaker');
-          } else {
-              bubble.classList.add('ai-speaker');
-          }
-          speakerBubbles.appendChild(bubble);
-          
-          if (window.gsap) {
-            window.gsap.to(bubble, { opacity: 1, duration: 0.3 });
-          } else {
+    function showSpeakerIndicator(speaker) {
+      speakerBubbles.innerHTML = '';
+      if (speaker === 'none') return;
+
+      const bubble = document.createElement('div');
+      // Base styles
+      bubble.style.cssText = "width: 25px; height: 25px; border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0; transition: opacity 0.3s ease; box-sizing: border-box;";
+
+      if (speaker === 'user') {
+        bubble.style.backgroundColor = '#fcbf49'; // --secondary
+        bubble.style.boxShadow = '0 0 15px #fcbf49';
+      } else {
+        bubble.style.backgroundColor = '#f77f00'; // --primary
+        bubble.style.boxShadow = '0 0 15px #f77f00';
+      }
+      speakerBubbles.appendChild(bubble);
+
+      if (window.gsap) {
+        window.gsap.to(bubble, {
+          opacity: 1,
+          duration: 0.3
+        });
+      } else {
+        // Use a slight timeout to ensure CSS transition triggers
+        setTimeout(() => {
             bubble.style.opacity = '1';
-          }
+        }, 10);
+      }
     }
   }
 
@@ -862,7 +664,7 @@
   function init() {
     loadGoogleFonts();
     injectStyles();
-    
+
     loadGSAP(function() {
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initializeVoiceAgent);

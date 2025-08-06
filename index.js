@@ -188,7 +188,7 @@
             await this.audioContext.resume();
           }
           const domain = "python.callai.rejoicehub.com"
-          const currentScript = document.currentScript;
+          const currentScript = document.getElementById("call-intel-id");
           const agent_id = currentScript?.getAttribute('call-intel-id');
           const wsUrl = `wss://${domain}/ws/web-call?agent_id=${agent_id}`;
           this.ws = new WebSocket(wsUrl);                       
